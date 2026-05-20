@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>local-suspicion-agent</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 720px; margin: 2em auto; padding: 0 1em; color: #222; }
+  h1 { font-size: 1.3em; }
+  textarea { width: 100%; height: 180px; font-size: 14px; padding: 8px; box-sizing: border-box; }
+  button { margin-top: 0.5em; padding: 0.6em 1.4em; font-size: 14px; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: wait; }
+  .result { margin-top: 1.5em; padding: 1em; border: 1px solid #ddd; border-radius: 6px; display: none; }
+  .score { font-size: 2em; font-weight: bold; }
+  .score.low { color: #2a7; }
+  .score.mid { color: #d80; }
+  .score.high { color: #c33; }
+  .label { display: inline-block; padding: 2px 10px; border-radius: 12px; background: #eef; font-size: 0.85em; margin-left: 0.6em; }
+  ul { margin: 0.5em 0 0; padding-left: 1.2em; }
+  .err { color: #c33; margin-top: 1em; }
+  .note { color: #888; font-size: 0.8em; margin-top: 2em; }
+</style>
+</head>
+<body>
+  <h1>性悪説エージェント (local)</h1>
+  <p>入力テキストはすべて「攻撃の可能性あり」として解析されます。外部通信なし。</p>
+  <textarea id="input" placeholder="解析したいテキストを貼り付け..."></textarea>
+  <div>
+    <button id="run">解析する</button>
+  </div>
+  <div id="err" class="err"></div>
+  <div id="result" class="result">
+    <div>
+      <span id="score" class="score">--</span>
+      <span style="font-size:0.7em;color:#666">/ 100</span>
+      <span id="label" class="label">-</span>
+    </div>
+    <div style="margin-top:0.8em;font-weight:bold;">疑わしい点</div>
+    <ul id="reasons"></ul>
+  </div>
+
+  <p class="note">model: ローカル Ollama。SUSPICION_MODEL 環境変数でモデル切替可。</p>
+
+<script>
+const btn = document.getElementById('run');
+const errBox = document.getElementById('err');
+const resBox = document.getElementById('result');
+
+btn.addEventListener('click', async () => {
+  const text = document.getElementById('input').value.trim();
+  errBox.textContent = '';
+  resBox.style.display = 'none';
+  if (!text) { errBox.textContent = 'テキストを入力してください'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '解析中...';
+  try {
+    const r = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text}),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({detail: r.statusText}));
+      throw new Error(e.detail || 'error');
+    }
+    const data = await r.json();
+    renderResult(data);
+  } catch (e) {
+    errBox.textContent = '失敗: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '解析する';
+  }
+});
+
+function renderResult(d) {
+  const scoreEl = document.getElementById('score');
+  scoreEl.textContent = d.score;
+  scoreEl.className = 'score ' + (d.score >= 70 ? 'high' : d.score >= 40 ? 'mid' : 'low');
+  document.getElementById('label').textContent = d.label;
+  const ul = document.getElementById('reasons');
+  ul.innerHTML = '';
+  (d.reasons || []).forEach(r => {
+    const li = document.createElement('li');
+    li.textContent = r;
+    ul.appendChild(li);
+  });
+  resBox.style.display = 'block';
+}
+</script>
+</body>
+</html>
