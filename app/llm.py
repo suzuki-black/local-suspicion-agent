@@ -16,7 +16,7 @@ from .prompts import SYSTEM_PROMPT, USER_TEMPLATE
 from .schemas import AnalyzeResponse
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
-MODEL = os.environ.get("SUSPICION_MODEL", "llama3.2:3b")
+MODEL = os.environ.get("SUSPICION_MODEL", "qwen2.5:7b")
 TIMEOUT_SEC = 120
 
 

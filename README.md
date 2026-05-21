@@ -39,7 +39,7 @@ Perfect for:
 # 1. Get a local model running
 brew install ollama
 ollama serve &
-ollama pull llama3.2:3b
+ollama pull qwen2.5:7b   # strong Japanese / multilingual; ~4.7GB
 
 # 2. Install
 python3 -m venv .venv && source .venv/bin/activate
@@ -98,7 +98,7 @@ static/
 | Env var | Default | Purpose |
 |---|---|---|
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | Local Ollama endpoint |
-| `SUSPICION_MODEL` | `llama3.2:3b` | Any Ollama-pulled model |
+| `SUSPICION_MODEL` | `qwen2.5:7b` | Any Ollama-pulled model. For weaker hardware try `llama3.2:3b` (lower recall on JP phishing) |
 
 ## 🗺️ Roadmap
 
@@ -156,7 +156,7 @@ MIT © 2026 **suzuki-black** — see [LICENSE](LICENSE).
 # 1. ローカルモデル準備
 brew install ollama
 ollama serve &
-ollama pull llama3.2:3b
+ollama pull qwen2.5:7b   # strong Japanese / multilingual; ~4.7GB
 
 # 2. インストール
 python3 -m venv .venv && source .venv/bin/activate
@@ -201,7 +201,7 @@ curl -X POST http://127.0.0.1:8765/api/analyze \
 | 変数 | 既定値 | 用途 |
 |---|---|---|
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | Ollama エンドポイント |
-| `SUSPICION_MODEL` | `llama3.2:3b` | 使用モデル |
+| `SUSPICION_MODEL` | `qwen2.5:7b` | 使用モデル。軽量化したい場合は `llama3.2:3b`（ただし日本語フィッシング検出の再現率は下がる） |
 
 ## 🗺️ ロードマップ
 
