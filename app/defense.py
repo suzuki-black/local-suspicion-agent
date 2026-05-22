@@ -156,6 +156,20 @@ def _new_nonce() -> str:
     return uuid.uuid4().hex[:8]
 
 
+def derive_nonce(text: str, *, salt: str = "") -> str:
+    """Deterministic 8-hex-char nonce from (text, salt).
+
+    Used by callers that need reproducibility (same input → same wrapped
+    prompt → same LLM output under a deterministic backend). The nonce
+    remains unguessable to an external attacker as long as ``salt``
+    incorporates internal version constants.
+    """
+    import hashlib
+
+    h = hashlib.sha256(f"{salt}|{text}".encode("utf-8")).hexdigest()
+    return h[:8]
+
+
 def _escape_close_tag(text: str) -> str:
     """Neutralize any attempt to close the SUSPECT_INPUT wrapper from inside."""
     return re.sub(
@@ -192,8 +206,15 @@ def _derive_pre_score(signals: List[InjectionSignal]) -> int:
     return min(score, MAX_PRE_SCORE)
 
 
-def wrap_input(text: str) -> WrappedInput:
+def wrap_input(text: str, *, nonce: str | None = None) -> WrappedInput:
     """Wrap input in nonce-tagged ``<SUSPECT_INPUT>`` block and detect injections.
+
+    Args:
+        text: input to analyze.
+        nonce: optional explicit nonce (8 hex chars). When ``None``, a fresh
+            random nonce is generated, so two calls with the same ``text``
+            produce different wrapped strings. Pass a value derived from
+            ``derive_nonce(text, salt=...)`` for reproducibility.
 
     The returned ``wrapped`` string is safe to embed in a user-role LLM message.
     The system prompt (see ``app/prompts.py``) instructs the model that tag
@@ -201,7 +222,8 @@ def wrap_input(text: str) -> WrappedInput:
     """
     if not isinstance(text, str):
         raise TypeError("wrap_input expects str")
-    nonce = _new_nonce()
+    if nonce is None:
+        nonce = _new_nonce()
     signals = _detect(text)
     safe = _escape_close_tag(text)
     open_tag = f'<SUSPECT_INPUT id="{nonce}">'

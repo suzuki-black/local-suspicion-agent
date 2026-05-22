@@ -12,3 +12,8 @@ class AnalyzeResponse(BaseModel):
     score: int = Field(..., ge=0, le=100)
     label: Label
     reasons: List[str]
+    trace_id: str = Field(..., description="ULID of the trace file under traces/")
+    disagreement_flag: bool = Field(
+        False,
+        description="True when |llm_score - heuristic_pre_score| >= 30",
+    )

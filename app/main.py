@@ -37,5 +37,8 @@ async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
     except llm.LLMError as e:
         logger.warning("llm error: %s", e)
         raise HTTPException(status_code=503, detail=str(e))
-    logger.info("result score=%d label=%s", result.score, result.label)
+    logger.info(
+        "result trace=%s score=%d label=%s disagree=%s",
+        result.trace_id, result.score, result.label, result.disagreement_flag,
+    )
     return result
