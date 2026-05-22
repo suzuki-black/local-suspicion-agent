@@ -10,12 +10,11 @@ from __future__ import annotations
 import hashlib
 
 # Scaffold values for P0. Replaced as tasks land.
-AGENT_VERSION = "0.5.0-p0-scaffold"
-PROMPT_VERSION = "v3-scaffold"
+AGENT_VERSION = "0.5.0-p0"
+PROMPT_VERSION = "v4-defense"  # bumped by Issue #1
 
 TOOL_VERSIONS: dict[str, str] = {
-    # Populated during P0 implementation.
-    # e.g. "defense": "1.0", "extract_urls": "1.0"
+    "defense": "1.0",  # app/defense.py — wrap_input + injection patterns
 }
 
 
