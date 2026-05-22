@@ -4,3 +4,9 @@ __pycache__/
 .venv-*/
 suspicion.log
 .DS_Store
+
+# P0 runtime artifacts
+traces/
+.eval/
+*.enc
+

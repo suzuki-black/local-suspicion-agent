@@ -102,13 +102,39 @@ static/
 
 ## 🗺️ Roadmap
 
-- [ ] Batch / file-drop analysis
-- [ ] CLI mode (`suspicion < message.txt`)
-- [ ] llama.cpp backend out of the box
-- [ ] Browser extension that scans selected text
-- [ ] Optional Tauri desktop bundle
+The project is evolving from a single-shot classifier into a true offline
+**agent**. The design is decided in public via a 3-way design discussion
+(human + Claude + Copilot). The roadmap below is the converged plan.
 
-PRs welcome — especially adversarial prompt examples for the eval set.
+### P0 (in progress) — defense & measurement floor
+
+- [ ] Meta prompt-injection defense (`<SUSPECT_INPUT>` tag wrap + injection-vocab detection)
+- [ ] `tests/cases.jsonl` eval set (100 cases incl. 6 injection sub-categories + `legit_but_suspicious`)
+- [ ] Three-layer trace log (`raw_input` opt-in / encrypted, `tool_observations`, sanitized `llm_calls`)
+- [ ] Seed-based reproducibility (`temperature=0.3` + deterministic seed; score/label/reasons stable across runs)
+- [ ] `scripts/eval.py` with precision / recall / FP-rate breakdown per category
+
+### P1 (~2 weeks) — agent core
+
+- [ ] ReAct loop, max 3 steps, 4 fixed Actions chosen by rules; LLM picks **one** optional sub-Action
+- [ ] Heuristic lower-bound score vs LLM score → `max()` aggregation + disagreement flag
+- [ ] Reflection (Devil's Advocate persona, fired only in score 30–70 gray zone, one pass)
+- [ ] `paranoia` state — short-term only, 24h half-life, with `user_minimum` floor
+
+### P2 (~1 month) — personality & memory
+
+- [ ] Safe / dangerous case memory with quarantine queue (poisoning-resistant)
+- [ ] Memory weighting driven by `paranoia`
+- [ ] Display-only long-term `environmental_risk` indicator (doesn't drive decisions)
+
+### P3 (optional) — product direction
+
+- [ ] Explanation agent ("what happens if I click?", reporting templates)
+- [ ] Developer SDK (prompt-injection guard for LLM apps)
+- [ ] Proactive monitoring (clipboard / mailbox watcher, browser extension)
+
+PRs welcome — adversarial prompt examples for the eval set are the highest-value
+contribution.
 
 ## 🤝 Contributing
 
@@ -205,11 +231,14 @@ curl -X POST http://127.0.0.1:8765/api/analyze \
 
 ## 🗺️ ロードマップ
 
-- [ ] バッチ / ファイル解析
-- [ ] CLI モード (`suspicion < message.txt`)
-- [ ] llama.cpp バックエンド標準対応
-- [ ] 選択テキストをスキャンするブラウザ拡張
-- [ ] Tauri デスクトップ版
+「単発分類器」から本物の**エージェント**へ進化させる計画。
+設計議論は公開（人間 + Claude + Copilot の 3 者壁打ち）で進行中。
+詳細は英語版 Roadmap セクションを参照。
+
+- **P0 (進行中)**: メタ injection 防御 / eval セット 100 件 / 3 層 trace ログ / シード再現性 / 計測スクリプト
+- **P1 (約 2 週)**: ReAct 3 ステップ + ハイブリッド Action 選択 / ヒューリスティック+LLM の `max()` + 不一致フラグ / Reflection（グレーゾーン限定）/ 短期 paranoia
+- **P2 (約 1 ヶ月)**: 安全/危険メモリ（隔離キュー）/ paranoia 連動の参照重み / 表示専用の長期環境リスク指標
+- **P3 (任意)**: 説明エージェント / 開発者 SDK / プロアクティブ監視
 
 ## 🤝 コントリビュート
 
