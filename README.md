@@ -106,13 +106,40 @@ The project is evolving from a single-shot classifier into a true offline
 **agent**. The design is decided in public via a 3-way design discussion
 (human + Claude + Copilot). The roadmap below is the converged plan.
 
-### P0 (in progress) — defense & measurement floor
+### 📊 Eval Baseline (v0.5.0-p0)
 
-- [ ] Meta prompt-injection defense (`<SUSPECT_INPUT>` tag wrap + injection-vocab detection)
-- [ ] `tests/cases.jsonl` eval set (100 cases incl. 6 injection sub-categories + `legit_but_suspicious`)
-- [ ] Three-layer trace log (`raw_input` opt-in / encrypted, `tool_observations`, sanitized `llm_calls`)
-- [ ] Seed-based reproducibility (`temperature=0.3` + deterministic seed; score/label/reasons stable across runs)
-- [ ] `scripts/eval.py` with precision / recall / FP-rate breakdown per category
+This is the **measurement floor**, not the optimization target. P1 changes
+(ReAct, Reflection, paranoia) will be benchmarked against this baseline.
+
+```
+Run: 2026-05-23  agent=0.5.0-p0  prompt=v4-defense  model=qwen2.5:7b
+────────────────────────────────────────────────────────────────────────
+Category                  N  Pass    Rate   Recall
+────────────────────────────────────────────────────────────────────────
+phishing                 30    23     77%      93%
+fraud                    15     3     20%      53%      ← misclassified as phishing
+harmless                  5     2     40%        —      ← scores 25-30 (over-suspect)
+────────────────────────────────────────────────────────────────────────
+Overall                  50    28  precision=100%  recall=80%  fp_rate=0.0%
+                                  (TP=36 FP=0 FN=9)
+Disagreement flagged: 0
+```
+
+Only 50 of the planned 100 cases are in place (Claude-authored slice).
+The remaining 50 cases — `prompt_injection`, `manipulation`,
+`legit_but_suspicious` — will be added by other authors per the design
+discussion. Re-running the eval after they land will produce the formal P0
+baseline.
+
+Reproduce: `python scripts/eval.py run`
+
+### P0 — defense & measurement floor
+
+- [x] Meta prompt-injection defense (`<SUSPECT_INPUT>` tag wrap + injection-vocab detection) — `app/defense.py`
+- [x] Three-layer trace log (`raw_input` opt-in / AES-GCM encrypted, `tool_observations`, sanitized `llm_calls`) — `app/trace.py`
+- [x] Seed-based reproducibility (`temperature=0.3` + deterministic seed; score/label/reasons stable across runs) — `app/llm.py`, `app/versions.py`
+- [x] `scripts/eval.py` with precision / recall / FP-rate breakdown per category — `scripts/eval.py`
+- [~] `tests/cases.jsonl` eval set: 50/100 cases (Claude-authored slice); awaiting Copilot (30) + human (20)
 
 ### P1 (~2 weeks) — agent core
 
@@ -235,7 +262,8 @@ curl -X POST http://127.0.0.1:8765/api/analyze \
 設計議論は公開（人間 + Claude + Copilot の 3 者壁打ち）で進行中。
 詳細は英語版 Roadmap セクションを参照。
 
-- **P0 (進行中)**: メタ injection 防御 / eval セット 100 件 / 3 層 trace ログ / シード再現性 / 計測スクリプト
+- **P0 (測定基盤ほぼ完成)**: メタ injection 防御 ✅ / 3 層 trace ログ ✅ / シード再現性 ✅ / 計測スクリプト ✅ / eval セット 50/100 件（残 50 件は他著者待ち）
+  詳細は英語版 "Eval Baseline (v0.5.0-p0)" を参照
 - **P1 (約 2 週)**: ReAct 3 ステップ + ハイブリッド Action 選択 / ヒューリスティック+LLM の `max()` + 不一致フラグ / Reflection（グレーゾーン限定）/ 短期 paranoia
 - **P2 (約 1 ヶ月)**: 安全/危険メモリ（隔離キュー）/ paranoia 連動の参照重み / 表示専用の長期環境リスク指標
 - **P3 (任意)**: 説明エージェント / 開発者 SDK / プロアクティブ監視
